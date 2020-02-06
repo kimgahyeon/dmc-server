@@ -12,6 +12,7 @@ var contactRouter = require('./routes/contact');
 var teamRouter = require('./routes/team');
 var paperRouter = require('./routes/papers');
 var blockchainRouter = require('./routes/blockchain');
+
 // var adminRouter = require('./routes/admin');
 var blueprintRouter = require('./routes/blueprint');
 var teamateRouter = require('./routes/teamate');
