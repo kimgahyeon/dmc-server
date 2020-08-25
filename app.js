@@ -22,6 +22,7 @@ var etherappRouter = require('./routes/etherapp');
 var energyRouter = require('./routes/energy');
 var educationRouter = require('./routes/education');
 
+var oldRouter = require('./routes/old');
 
 var app = express();
 
@@ -48,12 +49,13 @@ app.use('/network', networkRouter);
 app.use('/etherapp', etherappRouter);
 app.use('/energy', energyRouter);
 app.use('/education', educationRouter);
+app.use('/old', oldRouter);
 
 // app.use('/admin', adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+next(createError(404));
 });
 
 // error handler

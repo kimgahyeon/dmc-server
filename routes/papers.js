@@ -48,7 +48,6 @@ router.get('/', function (req, res, next) {
 router.post('/', function(req, res, next){
   var keyword = req.body.keyword;
 
-
   console.log(obj.papers[0]);
   console.log(obj.papers[1]);
   console.log(obj_length)
