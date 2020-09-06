@@ -15,33 +15,15 @@
     </div>
 
     <div class="btn-group">
-      <button type="button" id="all" class="filter-btn active" name="button">전체</button>
-      <button type="button" id="sci" class="filter-btn" name="button">2019</button>
-      <button type="button" id="non-sci" class="filter-btn" name="button">2018</button>
+      <button type="button" id="all" class="filter-btn active" name="button" onclick="pagination()">전체</button>
+      <button type="button" id="2019" class="filter-btn" name="button" onclick="pagination(2019)">2019</button>
+      <button type="button" id="2018" class="filter-btn" name="button" onclick="pagination(2018)">2018</button>
       <input type="text" id="keyword" class="keyword fas" placeholder="&#xf002; 검색어를 입력하세요">
     </div>
 
-    <% for(var i=0; i<obj_length; i++) { %>
-      <div class="row list" style="padding: 20px 25px;">
-        <div class="col-lg-1 col-sm-1" style="text-align: center;" >
-          <%= i+1 %>
-        </div>
-        <div class="col-lg-11 col-sm-11">
-          <div class="paper-title">
-            <%= projects.projects[i].title %>
-          </div>
-          <div class="paper-writer">
-            <%= projects.projects[i].author %>
-          </div>
-          
-          <div class="paper-info">
-            <%= projects.projects[i].info %>
-          </div>
-        </div>
-      </div>
-      <% } %>
+    <div id="data-container"></div>
+    <div id="pagination-container"></div>
 
-      
   </div>
 
   <%- include('partials/footer') %>
@@ -62,14 +44,77 @@
 
 
 <script>
-  // search
-  $(document).ready(function(){
-    $("#keyword").on("keyup", function() {
-      var value = $(this).val().toLowerCase();
-      $(".paper-title").filter(function() {
-        $(this).parent().parent().toggle($(this).text().toLowerCase().indexOf(value) > -1)
-      });
-    });
+  /**
+   * 20. 09. 06. 박찬형 - pagination
+   * 주석은 papers.ejs를 참고해주세요.
+   */ 
+
+  // pagination
+  pagination();
+
+  // button select
+  $('button').click(function() {
+    $('button').removeClass('active');
+    $(this).addClass('active');
   });
+
+  // search
+  $('#keyword').on('keyup', _.debounce(function () {
+    const id = $('button.active').attr('id');
+    const mode = id === "all" ? null : id;
+    const keyword = $(this).val().toLowerCase();
+    pagination(mode, keyword);
+  }, 500));
+
+  function pagination(mode, keyword) {
+    if(!keyword) keyword = $('#keyword').val().toLowerCase();
+    $('#pagination-container').pagination({
+      dataSource: function(done) {
+        $.ajax({
+          type: 'GET',
+          url: '/project/all',
+          success: function(response) {
+            let res = response.projects.rows;
+            if(mode) res = response.projects.rows.filter(project => project.year === mode);
+            if(keyword) res = res.filter(project => {
+              return project.title.toLowerCase().indexOf(keyword) !== -1
+                  || project.author.toLowerCase().indexOf(keyword) !== -1
+            });
+            done(res);
+          }
+        });
+      },
+      pageSize: 10,
+      autoHidePrevious: true,
+      autoHideNext: true,
+      callback: function(data, pagination) {
+        const html = templating(data, pagination);
+        $('#data-container').html(html);
+      }
+    });
+  }
+
+  function templating(data, pagination) {
+    let html = '';
+    $.each(data, (index, item) => {
+      html += `<div class="row list" style="padding: 20px 25px;">
+                  <div class="col-lg-1 col-sm-1" style="text-align: center;">
+                    ${ pagination.pageSize * (pagination.pageNumber - 1) + index + 1 }
+                  </div>
+                  <div class="col-lg-11 col-sm-11">
+                    <div class="paper-title">
+                      ${ item.title }
+                    </div>
+                    <div class="paper-writer">
+                      ${ item.author }
+                    </div>
+                    <div class="paper-info">
+                      ${ item.info }
+                    </div>
+                  </div>
+                </div>`; 
+    });
+    return html;
+  }
 </script>
 

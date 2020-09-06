@@ -11,31 +11,14 @@
     <div class="section">
       <div class="page-title">Papers</div>
       <div class="btn-group">
-        <button type="button" id="all" class="filter-btn active" name="button">전체</button>
-        <button type="button" id="sci" class="filter-btn" name="button">SCI</button>
-        <button type="button" id="non-sci" class="filter-btn" name="button">NON-SCI</button>
+        <button type="button" id="all" class="filter-btn active" name="button" onclick="pagination()">전체</button>
+        <button type="button" id="sci" class="filter-btn" name="button" onclick="pagination(1)">SCI</button>
+        <button type="button" id="non-sci" class="filter-btn" name="button" onclick="pagination(0)">NON-SCI</button>
         <input type="text" id="keyword" class="keyword fas" placeholder="&#xf002; 검색어를 입력하세요">
       </div>
 
-      <% for(var i=0; i<obj_length; i++) { %>
-        <div class="row list" style="padding: 20px 25px;">
-          <div class="col-lg-1 col-sm-1" style="text-align: center;" >
-            <%= i+1 %>
-          </div>
-          <div class="col-lg-11 col-sm-11">
-            <div class="paper-title">
-              <%= papers.papers[i].title %>
-            </div>
-            <div class="paper-writer">
-              <%= papers.papers[i].author %>
-            </div>
-            
-            <div class="paper-info">
-              <%= papers.papers[i].info %>
-            </div>
-          </div>
-        </div>
-      <% } %>
+      <div id="data-container"></div>
+      <div id="pagination-container"></div>
     </div>
     <%- include('partials/footer') %>  
   </body>
@@ -43,13 +26,93 @@
 </html>
 
 <script>
-  // search
-  $(document).ready(function(){
-    $("#keyword").on("keyup", function() {
-      var value = $(this).val().toLowerCase();
-      $(".paper-title").filter(function() {
-        $(this).parent().parent().toggle($(this).text().toLowerCase().indexOf(value) > -1)
-      });
-    });
+  // pagination
+  pagination();
+
+  // button select
+  $('button').click(function() {
+    $('button').removeClass('active');
+    $(this).addClass('active');
   });
+
+  /**
+   * 20. 09. 06. 박찬형 - 검색(debouncing)
+   * pagination으로 변경하면서 검색 처리도 바꿨어요.
+   * 반복적으로 ajax 요청을 해야 할 것 같아서
+   * 서버에 과도한 요청을 보내지 않도록 debounce 처리 했어요.
+   */ 
+  $('#keyword').on('keyup', _.debounce(function () {
+    const id = $('button.active').attr('id');
+    const mode = id === "sci" ? 1 : id === "non-sci" ? 0 : null;
+    const keyword = $(this).val().toLowerCase();
+    pagination(mode, keyword);
+  }, 500));
+
+  function pagination(mode, keyword) {
+    if(!keyword) keyword = $('#keyword').val().toLowerCase();
+    /**
+     * 20. 09. 06. 박찬형 - pagination.js
+     * 소스 보실 때 docs 참조하시면 좋을 것 같아요.
+     */ 
+    $('#pagination-container').pagination({
+      dataSource: function(done) {
+        $.ajax({
+          type: 'GET',
+          url: '/papers/all',
+          success: function(response) { 
+            let res = response.papers.rows;
+            
+            // SCI 구분
+            // 구분 값을 0과 1로 사용하고 있어서, 0이 false 처리 되기 때문에 mode != null 사용했어요.
+            if(mode != null) res = response.papers.rows.filter(paper => paper.isSCI === mode);
+            
+            // 검색 처리
+            if(keyword) res = res.filter(paper => {
+              return paper.title.toLowerCase().indexOf(keyword) !== -1
+                  || paper.author.toLowerCase().indexOf(keyword) !== -1
+            });
+            
+            // done의 parameter는 반드시 배열 형태여야 해요.
+            done(res); 
+          }
+        });
+      },
+      // 여기서 지정한 pageSize대로 데이터를 나눠줘요. 
+      pageSize: 10,
+      autoHidePrevious: true,
+      autoHideNext: true,
+      // ... 다른 pagination 속성은 여기 추가하면 돼요.
+      callback: function(data, pagination) {
+        // 위에서 pageSize대로 나눈 데이터를 data로 받아와요. (10 rows)
+        const html = templating(data, pagination);
+        $('#data-container').html(html);
+      }
+    });
+  }
+
+  function templating(data, pagination) {
+    // 위에서 pageSize대로 나눈 데이터를 어떤 모양으로 뿌려줄 지 정해요.
+    // pagination parameter는 번호 매기려고 가져왔어요. 
+    let html = '';
+    $.each(data, (index, item) => {
+      html += `<div class="row list" style="padding: 20px 25px;">
+                  <div class="col-lg-1 col-sm-1" style="text-align: center;">
+                    ${ pagination.pageSize * (pagination.pageNumber - 1) + index + 1 }
+                  </div>
+                  <div class="col-lg-11 col-sm-11">
+                    <div class="paper-title">
+                      ${ item.title }
+                    </div>
+                    <div class="paper-writer">
+                      ${ item.author }
+                    </div>
+                    <div class="paper-info">
+                      ${ item.info }
+                    </div>
+                  </div>
+                </div>`; 
+    });
+    return html;
+  }
+
 </script>
