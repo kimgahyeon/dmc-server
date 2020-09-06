@@ -13,7 +13,7 @@ var teamRouter = require('./routes/team');
 var paperRouter = require('./routes/papers');
 var blockchainRouter = require('./routes/blockchain');
 
-// var adminRouter = require('./routes/admin');
+var adminRouter = require('./routes/admin');
 var blueprintRouter = require('./routes/blueprint');
 var teamateRouter = require('./routes/teamate');
 var healthRouter = require('./routes/health');
@@ -51,7 +51,7 @@ app.use('/energy', energyRouter);
 app.use('/education', educationRouter);
 app.use('/old', oldRouter);
 
-// app.use('/admin', adminRouter);
+app.use('/admin', adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

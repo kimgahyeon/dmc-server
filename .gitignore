@@ -1,2 +1,3 @@
 ecosystem.config.js
 ./model/dbconfig.json
+node_modules
