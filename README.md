@@ -1,7 +1,13 @@
 # dmc-server
 
-# Updates
-## 20. 08. 25 무중단 배포 추가
+## Updates
+서버 재부팅 시 자동으로 프로세스 실행
+
+### Prerequisite
+80포트 접근 권한을 따로 지정하지 않았음. root로 실행 필요
+```shell
+sudo su
+```
 
 ### 서버 실행
 ```shell
