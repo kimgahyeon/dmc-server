@@ -4,17 +4,18 @@
 서버 재부팅 시 자동으로 프로세스 실행
 
 ### Prerequisite
-80포트로 들어오는 요청을 8080으로 redirect
 
+80포트로 들어오는 요청을 8080으로 redirect
 ```
 $ sudo iptables -A PREROUTING -t nat -i [Interface] -p tcp --dport 80 -j REDIRECT --to-port 8080
 ```
 `[Interface]`는 서버의 장비 인터페이스를 의미하며, ifconfig로 확인 후 적절하게 수정할 것
 
-재부팅 후에도 설정이 적용되도록 변경하였음
-
-```shell
-sudo su
+재부팅 후에도 설정이 적용되도록 변경
+```
+$ sudo apt-get install iptables-persistent
+$ sudo netfilter-persistent save
+$ sudo netfilter-persistent reload
 ```
 
 ### 서버 실행
